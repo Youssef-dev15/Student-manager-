@@ -8,6 +8,7 @@ import org.example.student_management_system.entities.User;
 import org.example.student_management_system.enums.Role;
 import org.example.student_management_system.enums.Status;
 import org.example.student_management_system.services.IUserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +21,13 @@ import java.util.UUID;
 public class UserService implements IUserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public UserResponseDto addUser(UserRequestDto dto) {
         User user = User.fromUserRequestDtoToUser(dto);
-        // TODO(security): encoder le mot de passe avec PasswordEncoder avant de sauvegarder
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return UserResponseDto.fromUserToUserResponseDto(userRepository.save(user));
     }
 

@@ -8,6 +8,7 @@ import org.example.student_management_system.entities.Absence;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -20,7 +21,7 @@ public class AbsenceResponseDto {
     private LocalDate absenceDate;
     private boolean justified;
     private String recordedBy;
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     public static AbsenceResponseDto fromAbsenceToAbsenceResponseDto(Absence absence) {
         return AbsenceResponseDto.builder()

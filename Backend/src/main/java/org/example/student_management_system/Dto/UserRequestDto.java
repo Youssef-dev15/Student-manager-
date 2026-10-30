@@ -16,4 +16,5 @@ public class UserRequestDto {
     private String password;
     private String fullName;
     private Role role;
+    private Status status;
 }
