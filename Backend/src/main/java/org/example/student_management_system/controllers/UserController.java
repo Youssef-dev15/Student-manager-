@@ -12,7 +12,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
-// TODO(security): @PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final IUserService userService;

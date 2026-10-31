@@ -1,0 +1,120 @@
+<div class="header">
+  <h1 class="page-title">Students</h1>
+  <a routerLink="/students/new" class="btn">+ New Student</a>
+</div>
+
+<form class="card filters" [formGroup]="form" (submit)="$event.preventDefault()">
+  <div class="search-row">
+    <input
+      type="search"
+      formControlName="keyword"
+      placeholder="Search by last or first name..."
+      aria-label="Search for a student"
+    />
+    <button type="button" class="link-btn" (click)="resetFilters()">Reset</button>
+  </div>
+
+  <div class="filter-grid">
+    <fieldset>
+      <legend>Study Level</legend>
+      <div class="checks">
+        @for (level of levels; track level) {
+          <label class="check">
+            <input
+              type="checkbox"
+              [checked]="isLevelSelected(level)"
+              (change)="toggleLevel(level)"
+            />
+            {{ level }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Enrollment Year</legend>
+      <div class="range">
+        <input type="number" formControlName="enrollmentYearFrom" placeholder="From" aria-label="Start year" />
+        <span>to</span>
+        <input type="number" formControlName="enrollmentYearTo" placeholder="To" aria-label="End year" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Absences</legend>
+      <div class="range">
+        <input type="number" min="0" formControlName="minAbsences" placeholder="Min" aria-label="Minimum absences" />
+        <span>to</span>
+        <input type="number" min="0" formControlName="maxAbsences" placeholder="Max" aria-label="Maximum absences" />
+      </div>
+    </fieldset>
+  </div>
+</form>
+
+@if (errorMessage()) {
+  <div class="alert" role="alert">{{ errorMessage() }}</div>
+}
+
+<div class="card table-card">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th><button type="button" (click)="toggleSort('lastName')">Last Name {{ sortIndicator('lastName') }}</button></th>
+          <th>First Name</th>
+          <th><button type="button" (click)="toggleSort('enrollmentYear')">Year {{ sortIndicator('enrollmentYear') }}</button></th>
+          <th>Level</th>
+          <th><button type="button" (click)="toggleSort('absencesCount')">Absences {{ sortIndicator('absencesCount') }}</button></th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of items(); track s.studentId) {
+          <tr>
+            <td>{{ s.lastName }}</td>
+            <td>{{ s.firstName }}</td>
+            <td>{{ s.enrollmentYear ?? '—' }}</td>
+            <td>{{ s.studyLevel ?? '—' }}</td>
+            <td>
+              <span class="badge" [class.badge-danger]="isAbsenceHigh(s)">
+                {{ s.absencesCount ?? 0 }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <a [routerLink]="['/students', s.studentId]">View</a>
+              <a [routerLink]="['/students', s.studentId, 'edit']">Edit</a>
+              <button type="button" class="danger" (click)="archive(s)">Archive</button>
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr><td colspan="6" class="empty">No students match your search.</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (loading()) {
+    <p class="loading">Loading...</p>
+  }
+
+  <div class="pagination">
+    <span class="total">{{ totalElements() }} result(s)</span>
+
+    <label class="size">
+      Rows per page
+      <select (change)="changeSize($event)">
+        @for (n of pageSizes; track n) {
+          <option [value]="n" [selected]="n === size()">{{ n }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="pager">
+      <button type="button" (click)="goTo(page() - 1)" [disabled]="page() === 0">Previous</button>
+      <span>Page {{ totalPages() === 0 ? 0 : page() + 1 }} of {{ totalPages() }}</span>
+      <button type="button" (click)="goTo(page() + 1)" [disabled]="page() + 1 >= totalPages()">Next</button>
+    </div>
+  </div>
+</div>

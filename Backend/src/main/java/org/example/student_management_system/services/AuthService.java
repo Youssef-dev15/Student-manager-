@@ -51,14 +51,14 @@ public class AuthService implements IAuthService {
         User user = userRepository.findByEmail(email)
                 .filter(u -> passwordEncoder.matches(dto.getPassword(), u.getPassword()))
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "Identifiants incorrects"));
+                        HttpStatus.UNAUTHORIZED, "incorrect credentials"));
 
         if (user.getStatus() == Status.Pending) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Compte en attente de validation par un administrateur");
+                    "Account awaiting validation by an administrator");
         }
         if (user.getStatus() == Status.Blocked) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Compte bloqué");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, " blocked Account");
         }
 
         String token = jwtService.generateToken(user);

@@ -11,14 +11,13 @@ public final class StudentSpecifications {
     public static Specification<Student> keyword(String keyword) {
         return (root, query, cb) -> {
             if (keyword == null || keyword.isBlank()) return null;
-            String p = keyword.trim() + "%";
+            String pattern = keyword.trim().toLowerCase() + "%";
             return cb.or(
-                    cb.like(root.get("lastName"), p),
-                    cb.like(root.get("firstName"), p)
+                    cb.like(cb.lower(root.get("lastName")), pattern),
+                    cb.like(cb.lower(root.get("firstName")), pattern)
             );
         };
     }
-
     public static Specification<Student> levelIn(List<String> levels) {
         return (root, query, cb) ->
                 (levels == null || levels.isEmpty()) ? null : root.get("studyLevel").in(levels);

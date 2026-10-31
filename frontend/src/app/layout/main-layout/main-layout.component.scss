@@ -1,0 +1,124 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 60px;
+  padding: 0 24px;
+  background: var(--color-nav);
+  color: var(--color-nav-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-nav-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.brand-logo {
+  background: var(--color-primary);
+  color: #04101f;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.links {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+
+  a {
+    color: var(--color-nav-text);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    opacity: 0.8;
+
+    &:hover { background: rgba(255, 255, 255, 0.08); opacity: 1; }
+    &.active { color: var(--color-primary); background: rgba(0, 184, 217, 0.12); opacity: 1; }
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.icon-btn,
+.user-btn,
+.burger {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-nav-text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+
+  &:hover { border-color: var(--color-primary); }
+}
+
+.burger { display: none; font-size: 20px; margin-left: auto; }
+
+.user { position: relative; }
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  min-width: 160px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+
+  button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover { background: rgba(0, 184, 217, 0.12); }
+  }
+}
+
+.content {
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+@media (max-width: 800px) {
+  .burger { display: block; }
+  .brand-name { display: none; }
+  .actions { margin-left: 0; }
+
+  .links {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    padding: 12px;
+    background: var(--color-nav);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    &.open { display: flex; }
+  }
+}
