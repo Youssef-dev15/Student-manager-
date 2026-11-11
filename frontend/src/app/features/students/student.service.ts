@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Page } from '../../shared/models/page.model';
-import { StudentFilter, StudentListItem } from '../../shared/models/student.models';
+import { StudentDetail, StudentFilter, StudentListItem, StudentPayload } from '../../shared/models/student.models';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
@@ -28,5 +28,17 @@ export class StudentService {
 
   archive(id: string): Observable<void> {
     return this.http.patch<void>(`${this.url}/${id}/archive`, null);
+  }
+
+    getById(id: string): Observable<StudentDetail> {
+    return this.http.get<StudentDetail>(`${this.url}/${id}`);
+  }
+
+  create(payload: StudentPayload): Observable<StudentDetail> {
+    return this.http.post<StudentDetail>(this.url, payload);
+  }
+
+  update(id: string, payload: StudentPayload): Observable<StudentDetail> {
+    return this.http.put<StudentDetail>(`${this.url}/${id}`, payload);
   }
 }

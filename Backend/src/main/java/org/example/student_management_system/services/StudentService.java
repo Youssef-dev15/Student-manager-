@@ -1,10 +1,7 @@
 package org.example.student_management_system.services;
+import org.example.student_management_system.Dto.*;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.student_management_system.Dto.StudentFilterDto;
-import org.example.student_management_system.Dto.StudentListView;
-import org.example.student_management_system.Dto.StudentRequestDto;
-import org.example.student_management_system.Dto.StudentResponseDto;
 import org.example.student_management_system.entities.Student;
 import org.example.student_management_system.enums.StudentStatus; // Import de l'enum
 import org.example.student_management_system.Repository.StudentRepository;
@@ -63,8 +60,14 @@ public class StudentService implements IStudentService {
                 .and(StudentSpecifications.enrollmentYearBetween(f.getEnrollmentYearFrom(), f.getEnrollmentYearTo()))
                 .and(StudentSpecifications.absencesBetween(f.getMinAbsences(), f.getMaxAbsences()));
 
-        return studentRepository.findBy(spec,
-                q -> q.as(StudentListView.class).page(pageable));
+        return studentRepository.findAll(spec, pageable)
+                .map(s -> new StudentListRow(
+                        s.getStudentId(),
+                        s.getFirstName(),
+                        s.getLastName(),
+                        s.getEnrollmentYear(),
+                        s.getStudyLevel(),
+                        s.getAbsencesCount()));
     }
 
     @Override

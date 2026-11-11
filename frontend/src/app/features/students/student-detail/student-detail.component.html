@@ -1,0 +1,169 @@
+<div class="header">
+  <a routerLink="/students" class="link">← Back to students</a>
+</div>
+
+@if (loading()) {
+  <p class="loading">Loading...</p>
+} @else if (student(); as s) {
+  <div class="card summary">
+    <div>
+      <h1 class="page-title">{{ s.firstName }} {{ s.lastName }}</h1>
+      <p class="meta">
+        {{ s.studentNumber }} · {{ s.studyLevel || 'Level not set' }} · {{ s.major || 'Major not set' }}
+      </p>
+    </div>
+
+    <div class="summary-right">
+      <span class="badge" [class.badge-danger]="(s.absencesCount ?? 0) >= 3">
+        {{ s.absencesCount ?? 0 }} absence(s)
+      </span>
+      <span class="status" [attr.data-status]="s.studentStatus">{{ s.studentStatus }}</span>
+      <a [routerLink]="['/students', studentId, 'edit']" class="btn-secondary">Edit</a>
+      <button type="button" class="btn-danger" (click)="archive()" [disabled]="saving()">Archive</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" class="tab" [class.active]="tab() === 'info'" (click)="setTab('info')">Information</button>
+    <button type="button" role="tab" class="tab" [class.active]="tab() === 'absences'" (click)="setTab('absences')">
+      Absences <span class="count">{{ absences().length }}</span>
+    </button>
+    <button type="button" role="tab" class="tab" [class.active]="tab() === 'reports'" (click)="setTab('reports')">
+      Grade reports <span class="count">{{ reports().length }}</span>
+    </button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert" role="alert">{{ errorMessage() }}</div>
+  }
+  @if (successMessage()) {
+    <div class="success" role="status">{{ successMessage() }}</div>
+  }
+
+  <!-- INFORMATION -->
+  @if (tab() === 'info') {
+    <div class="card">
+      <dl class="info">
+        <div><dt>Student number</dt><dd>{{ s.studentNumber }}</dd></div>
+        <div><dt>Email</dt><dd>{{ s.email }}</dd></div>
+        <div><dt>Date of birth</dt><dd>{{ s.birthDate || '—' }}</dd></div>
+        <div><dt>Gender</dt><dd>{{ s.gender || '—' }}</dd></div>
+        <div><dt>Major</dt><dd>{{ s.major || '—' }}</dd></div>
+        <div><dt>Study level</dt><dd>{{ s.studyLevel || '—' }}</dd></div>
+        <div><dt>Enrollment year</dt><dd>{{ s.enrollmentYear ?? '—' }}</dd></div>
+        <div><dt>Status</dt><dd>{{ s.studentStatus }}</dd></div>
+        <div><dt>Medical file</dt><dd>{{ s.medicalFilePdf || 'No file' }}</dd></div>
+      </dl>
+    </div>
+  }
+
+  <!-- ABSENCES -->
+  @if (tab() === 'absences') {
+    <form class="card inline-form" [formGroup]="absenceForm" (ngSubmit)="addAbsence()" novalidate>
+      <h2>Add an absence</h2>
+      <div class="row">
+        <div class="field">
+          <label for="absenceDate">Date *</label>
+          <input id="absenceDate" type="date" formControlName="absenceDate" [max]="today" />
+          @if (absenceForm.controls.absenceDate.touched && absenceForm.controls.absenceDate.invalid) {
+            <span class="error-text">The date is required.</span>
+          }
+        </div>
+
+        <label class="check">
+          <input type="checkbox" formControlName="justified" /> Justified
+        </label>
+
+        <button class="btn" type="submit" [disabled]="saving()">{{ saving() ? 'Saving...' : 'Add absence' }}</button>
+      </div>
+    </form>
+
+    <div class="card table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Justified</th><th>Recorded by</th><th class="actions-col">Actions</th></tr>
+          </thead>
+          <tbody>
+            @for (a of absences(); track a.absenceId) {
+              <tr>
+                <td>{{ a.absenceDate }}</td>
+                <td>
+                  <span class="badge" [class.badge-ok]="a.justified" [class.badge-danger]="!a.justified">
+                    {{ a.justified ? 'Yes' : 'No' }}
+                  </span>
+                </td>
+                <td>{{ a.recordedBy || '—' }}</td>
+                <td class="actions-col">
+                  <button type="button" class="danger" (click)="deleteAbsence(a)" [disabled]="saving()">Delete</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4" class="empty">No absences recorded.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- GRADE REPORTS -->
+  @if (tab() === 'reports') {
+    <form class="card inline-form" [formGroup]="reportForm" (ngSubmit)="addReport()" novalidate>
+      <h2>Add a grade report</h2>
+      <div class="row">
+        <div class="field">
+          <label for="academicYear">Academic year *</label>
+          <input id="academicYear" type="text" formControlName="academicYear" placeholder="2025-2026" />
+          @if (reportForm.controls.academicYear.touched && reportForm.controls.academicYear.invalid) {
+            <span class="error-text">The academic year is required.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="semesterNumber">Semester *</label>
+          <select id="semesterNumber" formControlName="semesterNumber">
+            @for (n of semesters; track n) {
+              <option [value]="n">Semester {{ n }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="bulletinPdf">Report file (name)</label>
+          <input id="bulletinPdf" type="text" formControlName="bulletinPdf" placeholder="report.pdf" />
+        </div>
+
+        <button class="btn" type="submit" [disabled]="saving()">{{ saving() ? 'Saving...' : 'Add report' }}</button>
+      </div>
+    </form>
+
+    <div class="card table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Academic year</th><th>Semester</th><th>File</th><th class="actions-col">Actions</th></tr>
+          </thead>
+          <tbody>
+            @for (r of reports(); track r.reportId) {
+              <tr>
+                <td>{{ r.academicYear || '—' }}</td>
+                <td>{{ r.semesterNumber ?? '—' }}</td>
+                <td>{{ r.bulletinPdf || 'No file' }}</td>
+                <td class="actions-col">
+                  <button type="button" class="danger" (click)="deleteReport(r)" [disabled]="saving()">Delete</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4" class="empty">No grade reports yet.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+} @else {
+  @if (errorMessage()) {
+    <div class="alert" role="alert">{{ errorMessage() }}</div>
+  }
+}

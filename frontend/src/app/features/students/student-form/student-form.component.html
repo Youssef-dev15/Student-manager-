@@ -1,0 +1,113 @@
+<div class="header">
+  <h1 class="page-title">{{ isEdit ? 'Edit student' : 'New student' }}</h1>
+  <a routerLink="/students" class="link">← Back to students</a>
+</div>
+
+@if (loading()) {
+  <p class="loading">Loading...</p>
+} @else {
+  <form class="card form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="grid">
+      <div class="field">
+        <label for="studentNumber">Student number *</label>
+        <input id="studentNumber" type="text" formControlName="studentNumber" />
+        @if (form.controls.studentNumber.touched && form.controls.studentNumber.invalid) {
+          <span class="error-text">The student number is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="email">Email *</label>
+        <input id="email" type="email" formControlName="email" />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <span class="error-text">Enter a valid email address.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="firstName">First name *</label>
+        <input id="firstName" type="text" formControlName="firstName" />
+        @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
+          <span class="error-text">The first name is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="lastName">Last name *</label>
+        <input id="lastName" type="text" formControlName="lastName" />
+        @if (form.controls.lastName.touched && form.controls.lastName.invalid) {
+          <span class="error-text">The last name is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="birthDate">Date of birth</label>
+        <input id="birthDate" type="date" formControlName="birthDate" />
+      </div>
+
+      <div class="field">
+        <label for="gender">Gender</label>
+        <select id="gender" formControlName="gender">
+          <option value="">Not specified</option>
+          @for (g of genders; track g) {
+            <option [value]="g">{{ g }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="major">Major</label>
+        <input id="major" type="text" formControlName="major" />
+      </div>
+
+      <div class="field">
+        <label for="studyLevel">Study level</label>
+        <select id="studyLevel" formControlName="studyLevel">
+          <option value="">Not specified</option>
+          @for (level of levels; track level) {
+            <option [value]="level">{{ level }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="enrollmentYear">Enrollment year</label>
+        <input id="enrollmentYear" type="number" formControlName="enrollmentYear" />
+        @if (form.controls.enrollmentYear.touched && form.controls.enrollmentYear.invalid) {
+          <span class="error-text">Enter a year between 1900 and 2100.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="studentStatus">Status</label>
+        <select id="studentStatus" formControlName="studentStatus">
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field full">
+        <label for="medicalFilePdf">Medical file (file name)</label>
+        <input id="medicalFilePdf" type="text" formControlName="medicalFilePdf" placeholder="example.pdf" />
+      </div>
+    </div>
+
+    @if (isEdit) {
+      <p class="hint">
+        Absences: <strong>{{ absencesCount() }}</strong> (updated automatically when absences are added or removed)
+      </p>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert" role="alert">{{ errorMessage() }}</div>
+    }
+
+    <div class="actions">
+      <a routerLink="/students" class="btn-secondary">Cancel</a>
+      <button class="btn" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving...' : (isEdit ? 'Save changes' : 'Create student') }}
+      </button>
+    </div>
+  </form>
+}

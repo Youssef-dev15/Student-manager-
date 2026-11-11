@@ -1,0 +1,83 @@
+<div class="header">
+  <h1 class="page-title">Managers</h1>
+  <button type="button" class="link-btn" (click)="load()" [disabled]="loading()">Refresh</button>
+</div>
+
+<div class="tabs" role="tablist">
+  @for (f of filters; track f) {
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [class.active]="filter() === f"
+      [attr.aria-selected]="filter() === f"
+      (click)="setFilter(f)"
+    >
+      {{ f }} <span class="count">{{ count(f) }}</span>
+    </button>
+  }
+</div>
+
+@if (errorMessage()) {
+  <div class="alert" role="alert">{{ errorMessage() }}</div>
+}
+@if (successMessage()) {
+  <div class="success" role="status">{{ successMessage() }}</div>
+}
+
+<div class="card table-card">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Full name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of visibleUsers(); track u.userId) {
+          <tr>
+            <td>{{ u.fullName || '—' }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.role }}</td>
+            <td>
+              <span class="badge"
+                    [class.badge-pending]="u.status === 'Pending'"
+                    [class.badge-approved]="u.status === 'Approved'"
+                    [class.badge-blocked]="u.status === 'Blocked'">
+                {{ u.status ?? '—' }}
+              </span>
+            </td>
+            <td class="actions-col">
+              @if (isManager(u)) {
+                @if (u.status === 'Pending') {
+                  <button type="button" (click)="approve(u)" [disabled]="busyId() === u.userId">Approve</button>
+                }
+                @if (u.status === 'Approved') {
+                  <button type="button" class="warn" (click)="block(u)" [disabled]="busyId() === u.userId">Block</button>
+                }
+                @if (u.status === 'Blocked') {
+                  <button type="button" (click)="unblock(u)" [disabled]="busyId() === u.userId">Unblock</button>
+                }
+                <button type="button" class="danger" (click)="remove(u)" [disabled]="busyId() === u.userId">Delete</button>
+              } @else {
+                <span class="muted">Protected account</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr><td colspan="5" class="empty">No accounts in this category.</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (loading()) {
+    <p class="loading">Loading...</p>
+  }
+</div>
