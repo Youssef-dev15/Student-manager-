@@ -12,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -60,5 +62,22 @@ public class AuditLogService implements IAuditLogService {
     public Page<AuditLogResponseDto> getAuditLogsAfterDate(LocalDateTime date, Pageable pageable) {
         return auditLogRepository.findByTimestampAfter(date, pageable)
                 .map(AuditLogResponseDto::fromAuditLogToAuditLogResponseDto);
+    }
+
+    @Override
+    @Transactional
+    public void record(String actionType, String description) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return;   // no signed-in user: nothing to record
+        }
+
+        String text = description == null ? "" : description;
+        if (text.length() > 255) text = text.substring(0, 255);   // column length
+
+        String email = auth.getName();   // the JWT filter sets the email as the principal
+        String finalText = text;
+        userRepository.findByEmail(email).ifPresent(user ->
+                auditLogRepository.insertEntry(actionType, email, finalText, user.getUserId()));
     }
 }

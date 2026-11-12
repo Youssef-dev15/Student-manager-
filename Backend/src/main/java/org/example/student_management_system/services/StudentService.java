@@ -21,11 +21,14 @@ import java.util.UUID;
 public class StudentService implements IStudentService {
 
     private final StudentRepository studentRepository;
+    private final IAuditLogService auditLogService;
 
     @Override
+    @Transactional
     public StudentResponseDto addStudent(StudentRequestDto studentRequestDto) {
         Student student = Student.fromStudentRequestDtoToStudent(studentRequestDto);
         Student savedStudent = studentRepository.save(student);
+        auditLogService.record("STUDENT_CREATED", "Created student " + savedStudent.getStudentNumber());
         return StudentResponseDto.fromStudentToStudentResponseDto(savedStudent);
     }
 
@@ -34,7 +37,6 @@ public class StudentService implements IStudentService {
         Student existingStudent = studentRepository.findById(studentId)
                 .orElseThrow(() -> new NoSuchElementException("Student not found with ID : " + studentId));
 
-        existingStudent.setStudentNumber(studentRequestDto.getStudentNumber());
         existingStudent.setFirstName(studentRequestDto.getFirstName());
         existingStudent.setLastName(studentRequestDto.getLastName());
         existingStudent.setEmail(studentRequestDto.getEmail());
@@ -45,9 +47,9 @@ public class StudentService implements IStudentService {
         existingStudent.setStudyLevel(studentRequestDto.getStudyLevel());
         existingStudent.setMedicalFilePdf(studentRequestDto.getMedicalFilePdf());
         existingStudent.setStudentStatus(studentRequestDto.getStudentStatus());
-        existingStudent.setAbsencesCount(studentRequestDto.getAbsencesCount());
 
         Student updatedStudent = studentRepository.save(existingStudent);
+        auditLogService.record("STUDENT_UPDATED", "Updated student " + updatedStudent.getStudentNumber());
         return StudentResponseDto.fromStudentToStudentResponseDto(updatedStudent);
     }
 
@@ -55,10 +57,11 @@ public class StudentService implements IStudentService {
     @Transactional(readOnly = true)
     public Page<StudentListView> search(StudentFilterDto f, Pageable pageable) {
         Specification<Student> spec = Specification
-                .where(StudentSpecifications.keyword(f.getKeyword()))
+                .where(StudentSpecifications.notArchived())
+                .and(StudentSpecifications.keyword(f.getKeyword()))
                 .and(StudentSpecifications.levelIn(f.getStudyLevels()))
                 .and(StudentSpecifications.enrollmentYearBetween(f.getEnrollmentYearFrom(), f.getEnrollmentYearTo()))
-                .and(StudentSpecifications.absencesBetween(f.getMinAbsences(), f.getMaxAbsences()));
+                .and(StudentSpecifications.absencesBetween(f.getMinAbsences(), f.getMaxAbsences()));;
 
         return studentRepository.findAll(spec, pageable)
                 .map(s -> new StudentListRow(
@@ -78,6 +81,7 @@ public class StudentService implements IStudentService {
         // On ne supprime pas la ligne de la base, on change juste son statut en DROPPED (Archivé)
         existingStudent.setStudentStatus(StudentStatus.DROPPED);
         studentRepository.save(existingStudent);
+        auditLogService.record("STUDENT_ARCHIVED", "Archived student " + existingStudent.getStudentNumber());
     }
     @Override
     @Transactional(readOnly = true)

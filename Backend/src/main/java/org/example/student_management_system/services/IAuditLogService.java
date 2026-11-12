@@ -14,4 +14,5 @@ public interface IAuditLogService {
     Page<AuditLogResponseDto> getAuditLogsByUserId(UUID userId, Pageable pageable);
     Page<AuditLogResponseDto> getAuditLogsByActionType(String actionType, Pageable pageable);
     Page<AuditLogResponseDto> getAuditLogsAfterDate(LocalDateTime date, Pageable pageable);
+    void record(String actionType, String description);
 }

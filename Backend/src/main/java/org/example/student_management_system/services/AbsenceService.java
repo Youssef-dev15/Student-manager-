@@ -8,6 +8,7 @@ import org.example.student_management_system.Repository.StudentRepository;
 import org.example.student_management_system.entities.Absence;
 import org.example.student_management_system.entities.Student;
 import org.example.student_management_system.services.IAbsenceService;
+import org.example.student_management_system.services.IAuditLogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class AbsenceService implements IAbsenceService {
 
     private final AbsenceRepository absenceRepository;
     private final StudentRepository studentRepository;
+    private final IAuditLogService auditLogService;
 
     @Override
     @Transactional
@@ -29,6 +31,7 @@ public class AbsenceService implements IAbsenceService {
 
         Absence absence = Absence.fromAbsenceRequestDtoToAbsence(dto, student);
         Absence saved = absenceRepository.save(absence);
+        auditLogService.record("ABSENCE_ADDED", "Absence added for student " + student.getStudentNumber());
 
         studentRepository.incrementAbsences(student.getStudentId());   // même transaction
 
@@ -69,6 +72,7 @@ public class AbsenceService implements IAbsenceService {
         UUID studentId = absence.getStudent().getStudentId();
 
         absenceRepository.delete(absence);
+        auditLogService.record("ABSENCE_DELETED", "Absence deleted for student " + absence.getStudent().getStudentNumber());
         studentRepository.decrementAbsences(studentId);   // même transaction
     }
 

@@ -22,6 +22,7 @@ public class UserService implements IUserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final IAuditLogService auditLogService;
 
     @Override
     @Transactional
@@ -61,9 +62,10 @@ public class UserService implements IUserService {
     public UserResponseDto validateManagerAccount(UUID userId) {
         User user = findManagerOrThrow(userId);
         if (user.getStatus() != Status.Pending) {
-            throw new IllegalStateException("Seul un compte PENDING peut être validé");
+            throw new IllegalStateException("Only a pending account can be approved");
         }
         user.setStatus(Status.Approved);
+        auditLogService.record("ACCOUNT_APPROVED", "Approved account " + user.getEmail());
         return UserResponseDto.fromUserToUserResponseDto(userRepository.save(user));
     }
 
@@ -72,9 +74,10 @@ public class UserService implements IUserService {
     public UserResponseDto blockManagerAccount(UUID userId) {
         User user = findManagerOrThrow(userId);   // refuse si c'est un ADMIN
         if (user.getStatus() != Status.Approved) {
-            throw new IllegalStateException("Seul un compte ACTIVE peut être bloqué");
+            throw new IllegalStateException("Only an approved account can be blocked");
         }
         user.setStatus(Status.Blocked);
+        auditLogService.record("ACCOUNT_BLOCKED", "Blocked account " + user.getEmail());
         return UserResponseDto.fromUserToUserResponseDto(userRepository.save(user));
     }
 
@@ -83,9 +86,10 @@ public class UserService implements IUserService {
     public UserResponseDto unblockManagerAccount(UUID userId) {
         User user = findManagerOrThrow(userId);
         if (user.getStatus() != Status.Blocked) {
-            throw new IllegalStateException("Seul un compte BLOCKED peut être débloqué");
+            throw new IllegalStateException("Only a blocked account can be unblocked");
         }
         user.setStatus(Status.Approved);
+        auditLogService.record("ACCOUNT_UNBLOCKED", "Unblocked account " + user.getEmail());
         return UserResponseDto.fromUserToUserResponseDto(userRepository.save(user));
     }
 
@@ -94,9 +98,10 @@ public class UserService implements IUserService {
     public void deleteUser(UUID userId) {
         User user = findUserOrThrow(userId);
         if (user.getRole() == Role. Admin) {
-            throw new IllegalStateException("Un compte ADMIN ne peut pas être supprimé");
+            throw new IllegalStateException("An Admin account cannot be deleted");
         }
         userRepository.delete(user);
+        auditLogService.record("ACCOUNT_DELETED", "Deleted account " + user.getEmail());
     }
 
     private User findUserOrThrow(UUID userId) {
@@ -107,7 +112,7 @@ public class UserService implements IUserService {
     private User findManagerOrThrow(UUID userId) {
         User user = findUserOrThrow(userId);
         if (user.getRole() != Role.Manager) {
-            throw new IllegalStateException("Cette action ne s'applique qu'aux comptes MANAGER");
+            throw new IllegalStateException("This action only applies to Manager accounts");
         }
         return user;
     }

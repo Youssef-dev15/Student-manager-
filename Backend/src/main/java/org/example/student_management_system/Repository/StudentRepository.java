@@ -1,6 +1,7 @@
 package org.example.student_management_system.Repository;
 
 import org.example.student_management_system.entities.Student;
+import org.example.student_management_system.services.IAuditLogService;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
